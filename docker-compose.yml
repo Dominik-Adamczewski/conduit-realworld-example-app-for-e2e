@@ -1,0 +1,11 @@
+services:
+  mysql:
+    image: mysql:8
+    container_name: conduit-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: conduit
+      MYSQL_PASSWORD: conduitpassword
+      MYSQL_DATABASE: conduit_dev
+    ports:
+      - "3306:3306"

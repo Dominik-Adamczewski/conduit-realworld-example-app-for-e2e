@@ -28,7 +28,12 @@ function ArticleEditorForm() {
       .then(({ author: { username }, body, description, tagList, title }) => {
         if (username !== loggedUser.username) redirect();
 
-        setForm({ body, description, tagList, title });
+        // Convert tagList array to comma-separated string
+        const tagListString = Array.isArray(tagList)
+          ? tagList.map((tag) => (typeof tag === "string" ? tag : tag.name)).join(", ")
+          : tagList;
+
+        setForm({ body, description, tagList: tagListString, title });
       })
       .catch(console.error);
 
@@ -45,13 +50,19 @@ function ArticleEditorForm() {
   const tagsInputHandler = (e) => {
     const value = e.target.value;
 
-    setForm((form) => ({ ...form, tagList: value.split(/,| /) }));
+    setForm((form) => ({ ...form, tagList: value }));
   };
 
   const formSubmit = (e) => {
     e.preventDefault();
 
-    setArticle({ headers, slug, body, description, tagList, title })
+    // Split tags by comma or space for submission
+    const tags = tagList
+      .split(/,|\s+/)
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0);
+
+    setArticle({ headers, slug, body, description, tagList: tags, title })
       .then((slug) => navigate(`/article/${slug}`))
       .catch(setErrorMessage);
   };

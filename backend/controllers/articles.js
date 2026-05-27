@@ -188,7 +188,7 @@ const updateArticle = async (req, res, next) => {
       throw new ForbiddenError("article");
     }
 
-    const { title, description, body } = req.body.article;
+    const { title, description, body, tagList } = req.body.article;
     if (title) {
       article.slug = slugify(title);
       article.title = title;
@@ -197,11 +197,35 @@ const updateArticle = async (req, res, next) => {
     if (body) article.body = body;
     await article.save();
 
-    appendTagList(article.tagList, article);
-    await appendFollowers(loggedUser, article);
-    await appendFavorites(loggedUser, article);
+    // Handle tag updates
+    if (tagList) {
+      await article.setTagList([]);
 
-    res.json({ article });
+      for (const tag of tagList) {
+        const tagInDB = await Tag.findByPk(tag.trim());
+
+        if (tagInDB) {
+          await article.addTagList(tagInDB);
+        } else if (tag.length > 2) {
+          const newTag = await Tag.create({ name: tag.trim() });
+
+          await article.addTagList(newTag);
+        }
+      }
+
+      article.dataValues.tagList = tagList;
+    }
+
+    const updatedArticle = await Article.findOne({
+      where: { slug: article.slug },
+      include: includeOptions,
+    });
+
+    appendTagList(updatedArticle.tagList, updatedArticle);
+    await appendFollowers(loggedUser, updatedArticle);
+    await appendFavorites(loggedUser, updatedArticle);
+
+    res.json({ article: updatedArticle });
   } catch (error) {
     next(error);
   }

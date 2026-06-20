@@ -9,8 +9,9 @@ const emptyForm = { title: "", description: "", body: "", tagList: "" };
 
 function ArticleEditorForm() {
   const { state } = useLocation();
+  const normalizeTagList = (tagList) => Array.isArray(tagList) ? tagList.join(", ") : (tagList ?? "");
   const [{ title, description, body, tagList }, setForm] = useState(
-    state || emptyForm,
+    state ? { ...state, tagList: normalizeTagList(state.tagList) } : emptyForm,
   );
   const [errorMessage, setErrorMessage] = useState("");
   const { isAuth, headers, loggedUser } = useAuth();

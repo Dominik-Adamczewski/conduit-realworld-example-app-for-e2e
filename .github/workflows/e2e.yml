@@ -1,0 +1,91 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_USER: conduit
+          MYSQL_PASSWORD: conduitpassword
+          MYSQL_DATABASE: conduit_dev
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -prootpassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout conduit app
+        uses: actions/checkout@v4
+        with:
+          path: conduit-app
+      
+      - name: Checkout playwright Tests
+        uses: actions/checkout@v4
+        with:
+          repository: Dominik-Adamczewski/playwright-tests
+          path: playwright-tests
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install conduit app dependencies
+        working-directory: conduit-app
+        run: |
+          cat > .env << 'EOF'
+          PORT=3001
+          JWT_KEY=${{ secrets.JWT_KEY }}
+
+          DEV_DB_USERNAME=conduit
+          DEV_DB_PASSWORD=conduitpassword
+          DEV_DB_NAME=conduit_dev
+          DEV_DB_HOSTNAME=127.0.0.1
+          DEV_DB_DIALECT=mysql
+          DEV_DB_LOGGGIN=true
+          EOF
+
+      - name: Run database migrations
+        working-directory: conduit-app
+        run: npm run sqlz -- db:migrate
+
+      - name: Start conduit app
+        working-directory: conduit-app
+        run: npm run dev &
+
+      - name: Wait for app to be ready
+        run: npx wait-on http://localhost:3000 --timeout 30000
+      
+      - name: Install Playwright Test dependencies
+        working-directory: playwright-tests/conduit-app-e2e-testing
+        run: npm install
+
+      - name: Install Playwright browsers
+        working-directory: playwright-tests/conduit-app-e2e-testing
+        run: npm install --with-deps chromium
+
+      - name: Run Playwright Tests
+        working-directory: playwright-tests/conduit-app-e2e-testing
+        run: npx playwright test
+      
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with: 
+          name: playwright-report
+          path: playwright-tests/conduit-app-e2e-testing/playwright-report/
+          retention-days: 7

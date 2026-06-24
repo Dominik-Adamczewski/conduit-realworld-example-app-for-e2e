@@ -61,7 +61,7 @@ jobs:
 
       - name: Run database migrations
         working-directory: conduit-app/backend
-        run: npx sequelize-cli db:migrate
+        run: ./node_modules/.bin/sequelize db:migrate
 
       - name: Start conduit app
         working-directory: conduit-app

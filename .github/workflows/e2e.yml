@@ -63,6 +63,10 @@ jobs:
         working-directory: conduit-app/backend
         run: npm install
 
+      - name: Install frontend dependencies
+        working-directory: conduit-app/frontend
+        run: npm install
+
       - name: Run database migrations
         working-directory: conduit-app/backend
         run: ../node_modules/.bin/sequelize db:migrate
@@ -75,24 +79,8 @@ jobs:
         working-directory: conduit-app/frontend
         run: npm run dev > /tmp/frontend.log 2>&1 &
 
-      - name: Wait for app startup
-        run: sleep 15
-
-      - name: Debug - show app logs
-        run: |
-          echo "=== BACKEND ===" 
-          cat /tmp/backend.log || true
-          echo "=== FRONTEND ==="
-          cat /tmp/frontend.log || true
-
-      - name: Debug - check ports
-        run: |
-          curl -v http://localhost:3000 || true
-          curl -v http://localhost:3001 || true
-          ps aux | grep node || true
-
       - name: Wait for app to be ready
-        run: npx wait-on http://localhost:3000 --timeout 30000
+        run: npx wait-on http://localhost:3001 http://localhost:3000 --timeout 60000
       
       - name: Install Playwright Test dependencies
         working-directory: playwright-tests/conduit-app-e2e-testing

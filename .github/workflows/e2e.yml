@@ -69,10 +69,13 @@ jobs:
 
       - name: Start conduit app
         working-directory: conduit-app
-        run: npm run dev &
+        run: npm run dev > /tmp/app.log 2>&1 &
 
       - name: Wait for app startup logs
-        run: sleep 10
+        run: sleep 15
+
+      - name: Debug - show app logs
+        run: cat /tmp/app.log || true
 
       - name: Debug - check if app is running
         run: |

@@ -59,6 +59,10 @@ jobs:
           DEV_DB_LOGGGIN=true
           EOF
 
+      - name: Debug - find sequelize binary
+        working-directory: conduit-app
+        run: find . -name "sequelize" -not -path "*/\.*" 2>/dev/null
+
       - name: Run database migrations
         working-directory: conduit-app/backend
         run: ../node_modules/.bin/sequelize db:migrate

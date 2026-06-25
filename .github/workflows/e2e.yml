@@ -67,17 +67,25 @@ jobs:
         working-directory: conduit-app/backend
         run: ../node_modules/.bin/sequelize db:migrate
 
-      - name: Start conduit app
-        working-directory: conduit-app
-        run: npm run dev > /tmp/app.log 2>&1 &
+      - name: Start backend
+        working-directory: conduit-app/backend
+        run: npm run dev > /tmp/backend.log 2>&1 &
 
-      - name: Wait for app startup logs
+      - name: Start frontend
+        working-directory: conduit-app/frontend
+        run: npm run dev > /tmp/frontend.log 2>&1 &
+
+      - name: Wait for app startup
         run: sleep 15
 
       - name: Debug - show app logs
-        run: cat /tmp/app.log || true
+        run: |
+          echo "=== BACKEND ===" 
+          cat /tmp/backend.log || true
+          echo "=== FRONTEND ==="
+          cat /tmp/frontend.log || true
 
-      - name: Debug - check if app is running
+      - name: Debug - check ports
         run: |
           curl -v http://localhost:3000 || true
           curl -v http://localhost:3001 || true

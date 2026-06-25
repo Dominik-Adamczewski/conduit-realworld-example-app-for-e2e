@@ -89,7 +89,7 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: playwright-tests/conduit-app-e2e-testing
-        run: npm install --with-deps chromium
+        run: ./node_modules/.bin/playwright install --with-deps chromium
 
       - name: Run Playwright Tests
         working-directory: playwright-tests/conduit-app-e2e-testing

@@ -63,10 +63,6 @@ jobs:
         working-directory: conduit-app/backend
         run: npm install
 
-      - name: Debug - find sequelize binary
-        working-directory: conduit-app
-        run: find . -name "sequelize" -not -path "*/\.*" 2>/dev/null
-
       - name: Run database migrations
         working-directory: conduit-app/backend
         run: ../node_modules/.bin/sequelize db:migrate
@@ -74,6 +70,15 @@ jobs:
       - name: Start conduit app
         working-directory: conduit-app
         run: npm run dev &
+
+      - name: Wait for app startup logs
+        run: sleep 10
+
+      - name: Debug - check if app is running
+        run: |
+          curl -v http://localhost:3000 || true
+          curl -v http://localhost:3001 || true
+          ps aux | grep node || true
 
       - name: Wait for app to be ready
         run: npx wait-on http://localhost:3000 --timeout 30000

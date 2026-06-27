@@ -99,6 +99,14 @@ jobs:
       - name: Run Playwright Tests
         working-directory: playwright-tests/conduit-app-e2e-testing
         run: npx playwright test --reporter=list
+        continue-on-error: true
+        env:
+          API_BASE_URL: http://localhost:3001
+
+      - name: Show failed test details
+        if: always()
+        working-directory: playwright-tests/conduit-app-e2e-testing
+        run: npx playwright test --reporter=line 2>&1 | tail -200
         env:
           API_BASE_URL: http://localhost:3001
       

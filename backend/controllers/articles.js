@@ -92,7 +92,7 @@ const createArticle = async (req, res, next) => {
       body: body,
     });
 
-    for (const tag of tagList) {
+    for (const tag of tagList ?? []) {
       const tagInDB = await Tag.findByPk(tag.trim());
 
       if (tagInDB) {
@@ -109,7 +109,6 @@ const createArticle = async (req, res, next) => {
     article.dataValues.tagList = tagList;
     article.setAuthor(loggedUser);
     article.dataValues.author = loggedUser;
-    await appendFollowers(loggedUser, loggedUser);
     await appendFavorites(loggedUser, article);
 
     res.status(201).json({ article });
